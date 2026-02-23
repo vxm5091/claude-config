@@ -228,6 +228,9 @@ If the project has E2E tests:
 3. Wait for all E2E tests to pass before creating PR
 4. Stop servers after tests complete
 
+**Chat/agent backend changes (socialgpt):**
+When modifying agent behavior (system prompt, tool routing, fallback logic, tools), use the `testing-langgraph-backend` skill for the E2E test pattern. Write LLM-as-judge tests that verify the agent makes the right tool calls with the right arguments. See `tests/test_*_e2e.py` for examples.
+
 **Manual verification (for UI/visual bugs):**
 If the bug is visual or e2e tests are unreliable:
 1. Start required servers locally (backend + frontend)
@@ -359,6 +362,10 @@ Report completion with PR URL.
 - **Problem:** Unit tests pass but integration/agent behavior may be broken
 - **Fix:** Always run E2E tests before creating PR - start the server and run the full E2E suite
 
+### Modifying chat/agent behavior without writing E2E tests
+- **Problem:** System prompt, tool routing, or fallback changes break agent behavior in ways unit tests can't catch
+- **Fix:** Use the `testing-langgraph-backend` skill to write LLM-as-judge E2E tests that verify the agent calls the right tools with the right arguments. Run them against the LangGraph dev server before creating the PR.
+
 ### Skipping code review before CI
 - **Problem:** Issues found after CI passes, requiring another push/CI cycle
 - **Fix:** Always run the `superpowers:code-reviewer` agent after creating the PR. Fix Critical/Important issues before checking CI. Present findings to user for their review.
@@ -383,7 +390,7 @@ Report completion with PR URL.
 - "I'll create the task list later" (create it BEFORE implementation, not after)
 - "The ticket is clear enough"
 - "I can figure out the acceptance criteria myself"
-- "Unit tests pass, E2E tests can wait"
+- "Unit tests pass, E2E tests can wait" (especially for chat/agent changes — write LLM-as-judge E2E tests)
 - "The code looks fine, I don't need a review"
 - "CI will probably pass, I'll mark it In Review now"
 - "I'll do these 3 tickets one at a time" (if they're independent, use a team)

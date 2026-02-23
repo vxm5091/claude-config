@@ -180,6 +180,99 @@ langgraph dev
 **Advantages:** Visual, interactive, great for one-time exploration
 **Limitations:** Manual, not repeatable, not automatable, can't commit tests
 
+## E2E Tests with LLM-as-Judge
+
+**When:** Testing agent behavior changes (system prompt, tool routing, fallback logic).
+
+E2E tests verify that the agent makes the right tool calls with the right arguments in response to user queries. Use the LLM-as-judge pattern to evaluate correctness.
+
+### Architecture
+
+```
+tests/e2e_helpers.py    — Shared helpers (invoke_agent, llm_judge, _parse_stream)
+tests/test_*_e2e.py     — E2E test files (pytest)
+```
+
+- `invoke_agent(query, config)` — Sends query to dev server, returns deduplicated tool calls + AI messages
+- `llm_judge(query, result, expected_behavior)` — Uses Claude Haiku to evaluate agent behavior
+- `_parse_stream(response)` — Parses LangGraph SSE stream with tool call deduplication by ID
+
+### Writing E2E Tests
+
+```python
+import pytest
+from tests.e2e_helpers import invoke_agent, llm_judge, is_server_running
+
+@pytest.mark.skipif(not is_server_running(), reason="LangGraph server not running on port 2024")
+class TestMyFeature:
+    def test_agent_does_something(self):
+        query = "User query that triggers the behavior"
+
+        # Optional: pass dashboard/creator context
+        config = {
+            "metadata": {
+                "dashboard_context": {
+                    "is_creator_detail": True,
+                    "active_creator": {"handle": "creatorname", "type": "creator"},
+                }
+            }
+        }
+
+        expected_behavior = """
+        Describe WHAT the agent should do, not HOW many times.
+        Focus on: which tools were called, with what key arguments.
+
+        ACCEPTABLE patterns:
+        1. tool_a → tool_b (normal flow)
+        2. tool_b directly (shortcut is ok)
+
+        NOT acceptable:
+        - Only calling tool_c without trying tool_b
+        """
+
+        result = invoke_agent(query, config=config)
+        judgment = llm_judge(query, result, expected_behavior)
+        assert judgment["passed"], f"LLM Judge failed: {judgment['reasoning']}"
+```
+
+### Key Patterns
+
+**Stream deduplication:** LangGraph SSE re-emits the full message state on each update. The `_parse_stream` helper deduplicates by tool call ID. Without this, you'll see 3-10x inflated tool call counts.
+
+**Test data selection:** Use real creators/topics from the database:
+- Pick tracked creators with recent embeddings (check `tracked_handles` + `content_embeddings`)
+- For fallback tests, pick topics NOT in the `topics` table
+- Verify your test data returns results by testing `search_post_content` directly first
+
+**LLM judge criteria:** Focus on whether the RIGHT tools were called with the RIGHT args. Don't penalize:
+- Number of tool calls (agent may make parallel calls)
+- Retry behavior (middleware may retry)
+- Exact response wording
+
+**Dashboard context:** Use helper functions to build configs:
+- `_creator_detail_config(handle, display_name)` — Simulates creator detail page
+- `_dashboard_config(visible_handles)` — Simulates dashboard with visible handles
+- Handles should include `@` prefix (middleware strips it)
+
+### Running E2E Tests
+
+```bash
+# Terminal 1: Start dev server
+cd socialgpt && source .venv/bin/activate && langgraph dev
+
+# Terminal 2: Run tests
+cd socialgpt && source .venv/bin/activate
+python -m pytest tests/test_*_e2e.py -v -s
+```
+
+Tests require: LangGraph dev server on port 2024, `ANTHROPIC_API_KEY` in env.
+
+### Existing E2E Tests
+
+| File | What it tests |
+|------|--------------|
+| `tests/test_topic_fallback_e2e.py` | Topic fallback to semantic search, creator/dashboard scoping |
+
 ## Common Scenarios
 
 ### Scenario 1: Testing New Tool
