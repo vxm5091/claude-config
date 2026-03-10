@@ -48,13 +48,13 @@ Do NOT rationalize skipping this ("it's probably X", "I'll just try this approac
 
 ## Verify APIs and Library Versions
 
-**REQUIRED:** Use the `verify-library-api` skill before using any framework/library API. Do not assume API patterns are current — libraries change between versions. This especially applies to: Dagster, LangGraph, assistant-ui, Next.js.
+**REQUIRED:** Use the `verify-library-api` skill before using any framework/library API. Do not assume API patterns are current — libraries change between versions.
 
 ---
 
 ## Task Tracking with Linear
 
-**Team**: blairsocial
+The Linear team name is configured per-project in the project's `.claude/CLAUDE.md`.
 
 ### When to Create Tasks
 
@@ -66,7 +66,7 @@ Create a Linear task for non-trivial work: features, bugs, refactors, multi-file
 mcp__linear-server__create_issue with:
 - title: "Task title"
 - description: "Task description with context"
-- team: "blairsocial"
+- team: "<team-name>"  # See project CLAUDE.md
 - state: "Backlog"
 - priority: 1-4 (1=Urgent, 2=High, 3=Medium, 4=Low, 0=No priority)
 - labels: ["Bug" | "Feature" | "Improvement"]
@@ -137,7 +137,7 @@ Even for "quick fixes" or single-file changes - ALWAYS:
    - Creates branch from updated main
    - Runs setup (npm install, etc.) and verifies tests pass
    - Worktree created at `.worktrees/<branch-name>` or configured location
-4. Make commits (reference task: "NEX-5: Add feature")
+4. Make commits (reference task: "PROJ-5: Add feature")
 5. Push: `git push -u origin feature/descriptive-name`
 6. Create PR with `gh pr create`
 7. Update Linear task with PR link and "In Review" status
@@ -160,7 +160,7 @@ Even for "quick fixes" or single-file changes - ALWAYS:
 
 Use `TeamCreate` to spawn parallel agents when:
 - **Multiple independent tickets** — 2+ tickets with no shared dependencies (each agent gets its own worktree and runs the full workflow)
-- **Cross-repo changes** — A single ticket touching multiple repos (dagster + backend + frontend). Each agent works in its own repo/worktree.
+- **Cross-repo changes** — A single ticket touching multiple repos. Each agent works in its own repo/worktree.
 - **Large ticket with separable subtasks** — Independent pieces that don't block each other
 
 **Don't use teams when:**
@@ -171,7 +171,7 @@ Use `TeamCreate` to spawn parallel agents when:
 The `starting-linear-ticket` skill has full team setup details.
 
 ### PR Requirements
-- Link to Linear task (NEX-X)
+- Link to Linear task
 - Test plan
 - Run tests locally before pushing
 - Verify CI passes

@@ -13,7 +13,7 @@ Complete end-to-end workflow for Linear tickets: fetch → in progress → workt
 
 ## Required Input
 
-User provides ticket identifier (e.g., "NEX-63", "start NEX-63", or just the number if context is clear).
+User provides ticket identifier (e.g., "PROJ-63", "start PROJ-63", or just the number if context is clear).
 
 ## When to Use a Team
 
@@ -21,8 +21,8 @@ Before starting the workflow, evaluate whether this work should use a **team of 
 
 ### Use a Team When
 
-- **Multiple independent tickets** — User asks to work on 2+ tickets at once (e.g., "start NEX-140, NEX-141, and NEX-142"). Each agent gets its own worktree and runs the full workflow independently.
-- **Cross-repo changes** — A single ticket requires changes across multiple repos (e.g., dagster pipeline + backend tools + frontend UI). Each agent works in a different repo/worktree.
+- **Multiple independent tickets** — User asks to work on 2+ tickets at once. Each agent gets its own worktree and runs the full workflow independently.
+- **Cross-repo changes** — A single ticket requires changes across multiple repos. Each agent works in a different repo/worktree.
 - **Large ticket with independent subtasks** — A ticket has clearly separable pieces (e.g., "add 3 new API endpoints" where each endpoint is independent).
 
 ### Don't Use a Team When
@@ -47,19 +47,19 @@ When using a team, the lead agent should:
 ### Team Agent Naming
 
 Name agents by their responsibility:
-- `nex-140-agent` — for ticket-based agents
-- `frontend-agent` / `backend-agent` / `dagster-agent` — for repo-based agents
+- `proj-140-agent` — for ticket-based agents
+- `frontend-agent` / `backend-agent` / `pipeline-agent` — for repo-based agents
 
 ### Example: Multiple Tickets
 
 ```
-User: "Start NEX-140, NEX-141, and NEX-142"
+User: "Start PROJ-140, PROJ-141, and PROJ-142"
 
 Lead:
   1. Fetch all 3 tickets from Linear
   2. Verify they're independent (no blocking dependencies)
   3. Mark all 3 as "In Progress"
-  4. TeamCreate → "nex-batch"
+  4. TeamCreate → "proj-batch"
   5. Spawn 3 agents, each with full ticket context
   6. Each agent: worktree → brainstorm → TDD → verify → PR → code review
   7. Lead collects PRs, updates Linear to "In Review"
@@ -68,14 +68,14 @@ Lead:
 ### Example: Cross-Repo Ticket
 
 ```
-User: "Start NEX-150" (requires dagster + backend + frontend changes)
+User: "Start PROJ-150" (requires changes across multiple repos)
 
 Lead:
   1. Fetch ticket, brainstorm overall design
   2. Identify which changes go to which repo
-  3. TeamCreate → "nex-150"
+  3. TeamCreate → "proj-150"
   4. Spawn agents per repo with their slice of the design
-  5. Define task dependencies (e.g., backend blocked by dagster schema)
+  5. Define task dependencies (e.g., backend blocked by schema changes)
   6. Each agent creates a PR in their respective repo
   7. Lead links all PRs in Linear ticket
 ```
@@ -134,9 +134,9 @@ Preserve existing labels (Bug/Feature/Improvement).
 **REQUIRED:** Invoke `superpowers:using-git-worktrees` skill.
 
 Use branch name from Linear if available (`branchName` field), otherwise generate:
-- Feature: `feature/nex-<number>-<slug>`
-- Bug: `fix/nex-<number>-<slug>`
-- Improvement: `improve/nex-<number>-<slug>`
+- Feature: `feature/<prefix>-<number>-<slug>`
+- Bug: `fix/<prefix>-<number>-<slug>`
+- Improvement: `improve/<prefix>-<number>-<slug>`
 
 Where `<slug>` is kebab-case from ticket title.
 
@@ -228,8 +228,8 @@ If the project has E2E tests:
 3. Wait for all E2E tests to pass before creating PR
 4. Stop servers after tests complete
 
-**Chat/agent backend changes (socialgpt):**
-When modifying agent behavior (system prompt, tool routing, fallback logic, tools), use the `testing-langgraph-backend` skill for the E2E test pattern. Write LLM-as-judge tests that verify the agent makes the right tool calls with the right arguments. See `tests/test_*_e2e.py` for examples.
+**Chat/agent backend changes:**
+When modifying agent behavior (system prompt, tool routing, fallback logic, tools), write E2E tests that verify the agent makes the right tool calls with the right arguments. See the project's `testing-langgraph-backend` skill if available.
 
 **Manual verification (for UI/visual bugs):**
 If the bug is visual or e2e tests are unreliable:
@@ -245,7 +245,7 @@ Push branch and create PR:
 ```bash
 git push -u origin <branch-name>
 
-gh pr create --title "NEX-<number>: <ticket-title>" --body "$(cat <<'EOF'
+gh pr create --title "<PROJ>-<number>: <ticket-title>" --body "$(cat <<'EOF'
 ## Summary
 <2-3 bullets from the design doc>
 
@@ -253,7 +253,7 @@ gh pr create --title "NEX-<number>: <ticket-title>" --body "$(cat <<'EOF'
 - [ ] <verification steps from TDD>
 
 ## Linear
-NEX-<number>
+<PROJ>-<number>
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
@@ -364,7 +364,7 @@ Report completion with PR URL.
 
 ### Modifying chat/agent behavior without writing E2E tests
 - **Problem:** System prompt, tool routing, or fallback changes break agent behavior in ways unit tests can't catch
-- **Fix:** Use the `testing-langgraph-backend` skill to write LLM-as-judge E2E tests that verify the agent calls the right tools with the right arguments. Run them against the LangGraph dev server before creating the PR.
+- **Fix:** Write E2E tests that verify the agent calls the right tools with the right arguments. Run them against the dev server before creating the PR.
 
 ### Skipping code review before CI
 - **Problem:** Issues found after CI passes, requiring another push/CI cycle
@@ -390,7 +390,7 @@ Report completion with PR URL.
 - "I'll create the task list later" (create it BEFORE implementation, not after)
 - "The ticket is clear enough"
 - "I can figure out the acceptance criteria myself"
-- "Unit tests pass, E2E tests can wait" (especially for chat/agent changes — write LLM-as-judge E2E tests)
+- "Unit tests pass, E2E tests can wait"
 - "The code looks fine, I don't need a review"
 - "CI will probably pass, I'll mark it In Review now"
 - "I'll do these 3 tickets one at a time" (if they're independent, use a team)

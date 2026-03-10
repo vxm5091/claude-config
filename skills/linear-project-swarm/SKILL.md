@@ -63,7 +63,7 @@ Skip issues already Done or In Review.
 Group issues into **waves** based on:
 - Explicit blocking relationships in Linear
 - Implicit dependencies from descriptions (e.g., "table must exist before frontend can query it")
-- Repo separation (dagster, backend, frontend)
+- Repo separation (if multi-repo project)
 
 **Wave 1:** Issues with no dependencies — can all start immediately
 **Wave 2+:** Issues that depend on Wave 1 completing
@@ -131,8 +131,7 @@ skill workflow with these modifications:
 - **Skip Step 4** (brainstorm) — use the approved acceptance criteria as your design.
 - **Start at Step 3** (create worktree) and continue through Step 11.
   - Worktree: git worktree add {WORKTREE_PATH} -b {BRANCH_NAME} origin/main
-  - socialgpt-dagster is a separate repo at ~/PycharmProjects/NextBest/socialgpt-dagster
-    — create worktrees FROM that repo's directory, not NextBest.
+  - If the project has multiple repos, create worktrees FROM each repo's directory.
 
 After Step 11 (Linear updated to In Review), also:
 - Send PR URL, code review summary, and implementation summary to team lead via SendMessage.
@@ -187,8 +186,8 @@ When all waves complete, report:
 
 | Issue | PR | CI Status |
 |-------|-----|-----------|
-| NEX-170 | #42 | passing |
-| NEX-171 | #43 | passing |
+| PROJ-170 | #42 | passing |
+| PROJ-171 | #43 | passing |
 | ... | ... | ... |
 
 Shut down team: SendMessage type "shutdown_request" to each agent, then TeamDelete.
@@ -200,7 +199,7 @@ Shut down team: SendMessage type "shutdown_request" to each agent, then TeamDele
 - **Each agent gets its own worktree** — no shared workspace
 - **Agents STOP after proposing acceptance criteria** — user must approve before implementation
 - **User approves wave plan before spawning** — no surprises
-- **Dagster is a separate repo** — worktrees for dagster must be created from within socialgpt-dagster, not NextBest
+- **Multi-repo projects** — create worktrees from within each repo's directory, not a parent directory
 - **Preserve existing Linear labels** when updating issue status
 - **Lead NEVER does implementation directly** — all work (code, tests, fixes, CI debugging) must be delegated to agents or subagents. The lead coordinates, reviews, and communicates with the user.
 
