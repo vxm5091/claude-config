@@ -71,6 +71,22 @@ The Linear team name is configured per-project in the project's `.claude/CLAUDE.
 
 Create a Linear task for non-trivial work: features, bugs, refactors, multi-file changes, or anything taking >5 minutes.
 
+### Ticket Scoping — Vertical, Complete Features
+
+**Tickets should be vertical slices of user-facing functionality, not horizontal layers.**
+
+- **Good:** "Linear Integration — OAuth, sync tasks as backlog, settings UI" (one ticket delivers a complete feature)
+- **Bad:** "Linear OAuth flow", "Linear sync API route", "Linear settings UI" (three tickets that each deliver nothing usable alone)
+
+**Guidelines:**
+- Each ticket should deliver a complete, usable feature when done
+- Include backend + frontend + tests in a single ticket
+- A user should be able to see/use the result of a completed ticket
+- Don't split by technical layer (API route, component, hook, store) — split by user value
+- It's OK for feature tickets to be larger; use subtasks or task lists within the ticket for tracking
+
+**Exceptions:** Infrastructure/setup tickets (DB migrations, auth setup, CI config) can be horizontal since they're prerequisites.
+
 ### Creating Tasks
 
 ```
