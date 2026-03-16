@@ -144,89 +144,47 @@ mcp__linear-server__save_issue with:
 ### Step 6b: Create Project + Tickets
 
 1. **Create or find project** — Use existing milestone if applicable, otherwise create via `mcp__linear-server__save_project`
+   - Put project-level context (architecture, scope decisions, success criteria, failure modes) in the **project description** — this is the design doc, not a separate document
 2. **Create vertical-slice tickets** — Each delivers complete user value:
    - Include frontend + backend + tests in a single ticket
    - Order by dependency graph from Eng review
-   - Each ticket references the design document
+   - Each ticket is self-contained: all requirements, scope, and acceptance criteria are in the ticket description itself
 3. **Create "Building later" tickets** — Separate backlog tickets with rationale preserved from CEO review
 4. **Add dependency notes** — In ticket descriptions: "Depends on: PROJ-XX" where ordering matters
+5. **Use Linear's `blocks`/`blockedBy` fields** to encode dependencies between tickets
 
-### Step 7: Create Design Document
+### Step 7: Link Everything
 
-Create a Linear document with the full design:
-
-```
-mcp__linear-server__create_document with:
-- title: "Design: <feature name>"
-- content: See design doc template below
-```
-
-### Step 8: Link Everything
-
-- Add design document link to each ticket's description
 - If project was created, ensure all tickets are linked to it
 - Report back: list of created tickets with IDs and titles
+
+**No separate design document.** Project-level design context goes in the project description. Ticket-level requirements go in the ticket description. This avoids information being split across multiple places.
 
 ## Ticket Description Template
 
 ```markdown
 ## Problem
-<Problem statement from CEO review — why are we building this?>
+<Problem statement — why are we building this?>
 
-## Solution
-<Architecture summary from Eng review — how does it work?>
-
-## Architecture
-<ASCII diagram from Eng review>
+## Scope
+<What's included, what's not. Specific enough for an implementer to work without asking questions.>
 
 ## Acceptance Criteria
-- [ ] <Specific, testable condition derived from "Building now" list>
+- [ ] <Specific, testable condition>
 - [ ] <Each criterion maps to a verifiable outcome>
 - [ ] <Include both happy path and key edge cases>
 
-## Design Document
-<Link to Linear document>
+## Testing
+<Testing requirements — unit tests, integration tests, test runs>
 
 ## Dependencies
 <"Depends on: PROJ-XX" if applicable, or "None">
 
 ## Not In Scope
-<Items explicitly deferred or cut, from CEO review>
+<Items explicitly deferred or cut>
 ```
 
-## Design Document Template
-
-```markdown
-# Design: <Feature Name>
-
-## Problem Statement
-<From CEO review — validated problem, who benefits, what happens if we don't build>
-
-## Scope Decisions
-### Building Now
-<Items and rationale>
-
-### Building Later
-<Deferred items with rationale — these become backlog tickets>
-
-### Not Building
-<Killed items with rationale>
-
-## Architecture
-<ASCII diagram from Eng review>
-
-### Components
-<What's created, what's modified, what's reused>
-
-### Data Flow
-<How data moves through the system>
-
-### Failure Modes
-<From Eng review — each new codepath's realistic failure scenario>
-
-## Ticket Breakdown
-<List of tickets created, with IDs, in dependency order>
-```
+**No separate design document.** Project-level context (architecture, data flow, scope decisions, failure modes, success criteria) lives in the project description. Each ticket is self-contained with its own requirements.
 
 ## Common Mistakes
 

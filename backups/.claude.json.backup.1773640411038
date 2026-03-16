@@ -1,5 +1,5 @@
 {
-  "numStartups": 88,
+  "numStartups": 89,
   "installMethod": "native",
   "autoUpdates": false,
   "theme": "light",
@@ -52,7 +52,7 @@
     "overage-promo": 62,
     "feedback-command": 82
   },
-  "promptQueueUseCount": 2441,
+  "promptQueueUseCount": 2444,
   "cachedStatsigGates": {
     "tengu_log_1p_events": true,
     "code_slack_app_install_banner": false,
@@ -242,6 +242,7 @@
   "opus45MigrationComplete": true,
   "githubRepoPaths": {
     "kmigdol/nextbest": [
+      "/Users/kayleigh/dev/nextbest",
       "/Users/kayleigh/PycharmProjects/NextBest"
     ],
     "kmigdol/socialgpt-dagster": [
@@ -656,6 +657,70 @@
       "hasTrustDialogAccepted": true,
       "projectOnboardingSeenCount": 0,
       "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "lastCost": 0.43191000000000007,
+      "lastAPIDuration": 59140,
+      "lastAPIDurationWithoutRetries": 59138,
+      "lastToolDuration": 13679,
+      "lastDuration": 661677,
+      "lastLinesAdded": 0,
+      "lastLinesRemoved": 0,
+      "lastTotalInputTokens": 9190,
+      "lastTotalOutputTokens": 1782,
+      "lastTotalCacheCreationInputTokens": 28352,
+      "lastTotalCacheReadInputTokens": 328420,
+      "lastTotalWebSearchRequests": 0,
+      "lastFpsAverage": 9.58,
+      "lastFpsLow1Pct": 475.12,
+      "lastModelUsage": {
+        "claude-opus-4-6[1m]": {
+          "inputTokens": 9190,
+          "outputTokens": 1782,
+          "cacheReadInputTokens": 328420,
+          "cacheCreationInputTokens": 28352,
+          "webSearchRequests": 0,
+          "costUSD": 0.43191000000000007
+        }
+      },
+      "lastSessionId": "cdae4809-7faa-497e-8561-f409b11ce808",
+      "lastSessionMetrics": {
+        "frame_duration_ms_count": 4206,
+        "frame_duration_ms_min": 0.05537499999991269,
+        "frame_duration_ms_max": 52.4694170000148,
+        "frame_duration_ms_avg": 0.7586509562529995,
+        "frame_duration_ms_p50": 0.5630625000048894,
+        "frame_duration_ms_p95": 1.7163313000026388,
+        "frame_duration_ms_p99": 2.902793340012418,
+        "hook_duration_ms_count": 1,
+        "hook_duration_ms_min": 706,
+        "hook_duration_ms_max": 706,
+        "hook_duration_ms_avg": 706,
+        "hook_duration_ms_p50": 706,
+        "hook_duration_ms_p95": 706,
+        "hook_duration_ms_p99": 706,
+        "pre_tool_hook_duration_ms_count": 15,
+        "pre_tool_hook_duration_ms_min": 0,
+        "pre_tool_hook_duration_ms_max": 1,
+        "pre_tool_hook_duration_ms_avg": 0.06666666666666667,
+        "pre_tool_hook_duration_ms_p50": 0,
+        "pre_tool_hook_duration_ms_p95": 0.29999999999999893,
+        "pre_tool_hook_duration_ms_p99": 0.8599999999999994
+      }
+    },
+    "/Users/kayleigh/dev/nextbest": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {
+        "linear-server": {
+          "type": "http",
+          "url": "https://mcp.linear.app/mcp"
+        }
+      },
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
       "hasClaudeMdExternalIncludesWarningShown": false
     }
   },
@@ -706,8 +771,8 @@
   },
   "skillUsage": {
     "superpowers:brainstorming": {
-      "usageCount": 85,
-      "lastUsedAt": 1773634838050
+      "usageCount": 86,
+      "lastUsedAt": 1773637723360
     },
     "superpowers:executing-plans": {
       "usageCount": 1,
@@ -826,8 +891,12 @@
       "lastUsedAt": 1771896106893
     },
     "creating-linear-tickets": {
+      "usageCount": 2,
+      "lastUsedAt": 1773637690838
+    },
+    "plan-review-ceo": {
       "usageCount": 1,
-      "lastUsedAt": 1773375590644
+      "lastUsedAt": 1773639222022
     }
   },
   "passesUpsellSeenCount": 3,
@@ -913,5 +982,5 @@
     "claude.ai Notion"
   ],
   "effortCalloutV2Dismissed": true,
-  "opus1mMergeNoticeSeenCount": 2
+  "opus1mMergeNoticeSeenCount": 3
 }
