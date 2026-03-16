@@ -45,6 +45,26 @@
 ## Tooling
 - **Package manager:** Use `npm` (NOT `bun` — bun is not installed)
 
+## Local Dev Gotchas
+- **Dev server in worktrees:** Use `nohup npm run dev > /tmp/lubo-dev-server.log 2>&1 &` — NOT `run_in_background`. Claude Code's background task runner kills child processes when tasks complete/timeout.
+- **Env vars:** `.env.local` uses `NEXT_PUBLIC_SUPABASE_ANON_KEY` but the app client expects `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Both must be set. When creating worktrees, copy `.env.local` from main repo.
+- **DB NOT NULL columns:** `nodes.tags` (text[]), `nodes.source_ext` (jsonb), `nodes.data` (jsonb) are NOT NULL with defaults. The `nodeToDbRow()` helper strips null values for these so DB defaults apply. Don't send `null` for these columns in inserts.
+
+## E2E Testing
+- **Always write e2e tests** when making changes — covers auth flow, chat interactions, routine flow
+- **Playwright setup:** Install in `/tmp/pw-runner/` (separate from project to avoid vitest conflicts). Run scripts with `node /tmp/pw-runner/test.mjs`
+- **Auth flow:** Send magic link → fetch from Mailpit API (`http://127.0.0.1:54324/api/v1/messages`) → extract token URL → navigate to it
+- **Prerequisites:** OrbStack running, `supabase start`, `supabase db reset` (run from worktree to get branch migrations), dev server running
+- **Dashboard URL:** `/dashboard` (NOT `/today` — TodayPage renders at `/(app)/dashboard/page.tsx`)
+
+## CopilotKit Gotchas
+- **AnthropicAdapter baseURL:** Must pass `new Anthropic({ baseURL: "https://api.anthropic.com/v1" })` explicitly — SDK defaults to `/` without `/v1`, which breaks `@ai-sdk/anthropic`
+- **Model ID:** Use `claude-sonnet-4-20250514` (NOT `claude-sonnet-4-5-...`)
+- **`available` prop bug:** Do NOT use `available: "disabled"/"enabled"` on `useCopilotAction` — it changes the internal action type classification and throws "Action configuration changed between renders". Instead, guard handlers with a session-active check.
+
+## Vercel CLI
+- [Vercel env var management](feedback_vercel_env.md) — how to add env vars for production and preview
+
 ## Repo State
 - Path: `/Users/kayleigh/dev/Lubo` (same as `/Users/kayleigh/Dev/Lubo` — macOS case-insensitive)
 - Git repo, main branch tracks origin/main

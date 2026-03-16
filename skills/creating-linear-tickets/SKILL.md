@@ -46,35 +46,40 @@ An idea, feature request, bug report, or initiative. Can be:
 
 ## Workflow (Full)
 
+**IMPORTANT: Reviews happen early, before detailed ticket design.** The flow is: high-level design → reviews (challenge scope/architecture) → detailed ticket specs. Do NOT write detailed ticket descriptions, acceptance criteria, or scope before the reviews have run. The reviews exist to shape what the tickets should be.
+
 ```dot
 digraph workflow {
     rankdir=TB;
-    brainstorm [label="1. Brainstorm", shape=box];
+    brainstorm [label="1. Brainstorm\n(high-level design only)", shape=box];
     ceo [label="2. CEO Review\nEXPAND → HOLD → REDUCE", shape=box];
     eng [label="3. Eng Review\n(Architecture)", shape=box];
     scope [label="4. Scope Assessment", shape=diamond];
-    single [label="5a. Create Single Ticket", shape=box];
-    project [label="5b. Create Project + Tickets", shape=box];
-    doc [label="6. Create Design Document", shape=box];
-    link [label="7. Link Everything", shape=box];
+    detail [label="5. Detail Ticket Specs", shape=box];
+    single [label="6a. Create Single Ticket", shape=box];
+    project [label="6b. Create Project + Tickets", shape=box];
+    doc [label="7. Create Design Document", shape=box];
+    link [label="8. Link Everything", shape=box];
 
-    brainstorm -> ceo -> eng -> scope;
-    scope -> single [label="small"];
-    scope -> project [label="large"];
+    brainstorm -> ceo -> eng -> scope -> detail;
+    detail -> single [label="small"];
+    detail -> project [label="large"];
     single -> doc;
     project -> doc;
     doc -> link;
 }
 ```
 
-### Step 1: Brainstorm
+### Step 1: Brainstorm (High-Level Design)
 
 **REQUIRED SUB-SKILL:** Invoke `superpowers:brainstorming`
 
-Provide the idea as context. Brainstorming will:
-- Ask clarifying questions one at a time
-- Explore 2-3 approaches with trade-offs
-- Present a design incrementally for validation
+Provide the idea as context. Brainstorming should produce a **high-level design** — the shape of the work, major components, key decisions, and a rough ticket breakdown (names + one-line descriptions). Do NOT write detailed ticket specs (full acceptance criteria, detailed scope, etc.) at this stage — that comes after reviews.
+
+Output should be:
+- Key design decisions and trade-offs explored
+- Rough dependency graph
+- Ticket names + one-line summaries (not full specs)
 
 **Do NOT save a design doc yet** — the design will be refined by the review phases.
 
@@ -86,6 +91,8 @@ Pass the brainstorming output. The CEO review runs EXPAND → HOLD → REDUCE an
 - **Building now** — what goes into tickets
 - **Building later** — deferred with rationale
 - **Not building** — explicitly killed
+
+This may add, remove, or reshape tickets from the brainstorming output.
 
 ### Step 3: Eng Review (Architecture)
 
@@ -111,7 +118,18 @@ Auto-detect whether this is a single ticket or project with multiple tickets:
 
 **Always ask to confirm** before creating: "This looks like [single ticket / a project with N tickets]. Sound right?"
 
-### Step 5a: Create Single Ticket
+### Step 5: Detail Ticket Specs
+
+**Only now — after reviews have validated scope and architecture — write detailed ticket descriptions.** For each ticket, flesh out:
+- Full scope (what's included, what's not)
+- Acceptance criteria (specific, testable)
+- Dependencies on other tickets
+- Testing requirements
+- Architecture notes from Eng review
+
+Present each ticket to the user for validation before creating in Linear.
+
+### Step 6a: Create Single Ticket
 
 ```
 mcp__linear-server__save_issue with:
@@ -123,7 +141,7 @@ mcp__linear-server__save_issue with:
 - labelIds: [Feature | Bug | Improvement]  # Look up with list_issue_labels
 ```
 
-### Step 5b: Create Project + Tickets
+### Step 6b: Create Project + Tickets
 
 1. **Create or find project** — Use existing milestone if applicable, otherwise create via `mcp__linear-server__save_project`
 2. **Create vertical-slice tickets** — Each delivers complete user value:
@@ -133,7 +151,7 @@ mcp__linear-server__save_issue with:
 3. **Create "Building later" tickets** — Separate backlog tickets with rationale preserved from CEO review
 4. **Add dependency notes** — In ticket descriptions: "Depends on: PROJ-XX" where ordering matters
 
-### Step 6: Create Design Document
+### Step 7: Create Design Document
 
 Create a Linear document with the full design:
 
@@ -143,7 +161,7 @@ mcp__linear-server__create_document with:
 - content: See design doc template below
 ```
 
-### Step 7: Link Everything
+### Step 8: Link Everything
 
 - Add design document link to each ticket's description
 - If project was created, ensure all tickets are linked to it
