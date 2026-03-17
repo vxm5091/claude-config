@@ -213,11 +213,44 @@ Acceptance criteria:
 - <criterion 1>
 - <criterion 2>
 
-Follow TDD:
-1. Write failing test first
-2. Implement minimal code to pass
-3. Refactor if needed
-4. Run tests to verify: <test command>
+## How to Work
+
+1. Read the project's `.claude/CLAUDE.md` — it has a "Verification Commands"
+   section with the exact commands you must run. These mirror CI.
+2. Follow TDD:
+   a. Write failing test first
+   b. Implement minimal code to pass
+   c. Refactor if needed
+
+## Verification Gate (mandatory before reporting success)
+
+Run ALL verification commands from the project's `.claude/CLAUDE.md`.
+Every check must pass.
+
+If any check fails:
+1. Read the error output carefully
+2. Diagnose the root cause (wrong approach vs. bug)
+3. Fix the issue
+4. Re-run ALL checks
+5. Repeat up to 3 attempts
+
+## Escalation
+
+If after 3 fix attempts a check still fails, STOP and report back with:
+- Which check is failing
+- The exact error output
+- What you tried (all 3 attempts)
+- Your hypothesis for why it's still failing
+
+Do NOT report success if any verification check is failing.
+
+## Report Format
+
+When done, report:
+- What you implemented
+- What you tested and verification gate results (all checks)
+- Files changed
+- Any concerns
 ```
 
 **When NOT to use subagents:**
@@ -232,9 +265,7 @@ Follow TDD:
 **REQUIRED:** Invoke `superpowers:verification-before-completion` skill, or dispatch a Bash subagent to run verification.
 
 **Automated verification:**
-- Run all tests and verify everything passes
-- TypeScript compilation: `npx tsc --noEmit`
-- Build verification: `npm run build`
+Run ALL commands from the project's `.claude/CLAUDE.md` → "Verification Commands" section. These mirror CI exactly and include tests, type checking, linting, and any project-specific checks. Every command must pass.
 
 **E2E tests (REQUIRED if they exist):**
 If the project has E2E tests:
