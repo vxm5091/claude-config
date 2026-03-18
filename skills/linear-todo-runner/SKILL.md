@@ -190,11 +190,15 @@ When an agent completes and reports its PR:
 
 **Do this per-PR as they finish** — don't wait for all agents to complete.
 
+**After merging, check for conflicts on other open PRs:**
+Run `gh pr view <number> --json mergeable --jq '.mergeable'` for each open PR. If any show `CONFLICTING`, notify the relevant agent to rebase/merge main into their branch. Don't wait for the user to discover conflicts.
+
 ### Step 10: Fill Freed Slot
 
 After a PR merges:
-1. Check if any blocked tickets are now unblocked (their dependency just merged)
-2. **Re-fetch Todo issues** — the user may have added new tickets during the run. Check for any new Todo issues that weren't in the original queue.
+1. **Check open PRs for merge conflicts** — run mergeable check on all open PRs and send rebase instructions to affected agents
+2. Check if any blocked tickets are now unblocked (their dependency just merged)
+3. **Re-fetch Todo issues** — the user may have added new tickets during the run. Check for any new Todo issues that weren't in the original queue.
 3. Pick the next eligible ticket from the queue (including any newly added ones)
 4. Spawn a new agent (go to Step 5)
 
