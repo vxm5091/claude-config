@@ -148,7 +148,9 @@ After Step 11 (Linear updated to In Review), also:
 - Check the installed version of frameworks in package.json before making
   assumptions about API conventions
 - Use pnpm for frontend, uv for Python projects
-- NEVER commit to main
+- NEVER commit directly to main — ALL changes go through a worktree + branch + PR
+- If the team lead sends you feedback or fix requests after your PR is submitted,
+  push the fix to YOUR branch (the PR branch), NOT to main
 - NEVER mark Linear as "In Review" until CI passes
 ```
 
@@ -216,6 +218,7 @@ Shut down team: SendMessage type "shutdown_request" to each agent, then TeamDele
 - **User approves queue order before starting** — no surprises
 - **Preserve existing Linear labels** when updating issue status
 - **Lead NEVER does implementation directly** — all work (code, tests, fixes, CI debugging, ad-hoc bugfixes, quick UI tweaks) must be delegated to agents or subagents. The lead coordinates, reviews, and communicates with the user. If the user reports a bug or requests a change during the run, spawn a subagent to fix it — do NOT edit code yourself, even if it seems trivial.
+- **NEVER commit directly to main** — every change, no matter how small, must go through a PR. If the user gives feedback on a completed PR, push the fix to that PR's branch — do NOT commit to main. If the PR is already merged and a fix is needed, spawn a subagent to create a new worktree + branch + PR for the fix. Zero exceptions.
 
 ## Quick Reference
 
