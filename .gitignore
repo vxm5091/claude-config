@@ -27,19 +27,8 @@ todos/
 usage-data/
 config/
 
-# Projects - only keep memory/ dirs, ignore everything else
-projects/**/*.jsonl
-projects/**/subagents/
-projects/**/scratchpads/
-projects/**/shared-history/
-projects/**/tool-results/
-# Worktree project dirs (no memory worth tracking)
-projects/-Users-kayleigh--claude-worktrees-*/
-# Stale projects (content moved to project repos)
-projects/-Users-kayleigh-PycharmProjects-NextBest/
-projects/-Users-kayleigh-dev-Lubo/
-projects/-Users-kayleigh-conductor-workspaces-*/
-projects/-Users-kayleigh-PycharmProjects-NextBest-socialgpt-frontend/
+# Projects — memories live in each project's .claude/CLAUDE.md, not here
+projects/
 
 # Image cache
 image-cache/

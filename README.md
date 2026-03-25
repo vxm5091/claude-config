@@ -8,15 +8,13 @@ My global [Claude Code](https://docs.anthropic.com/en/docs/claude-code) configur
 ~/.claude/
 ├── Claude.MD              # Global instructions (loaded in every conversation)
 ├── settings.json          # Runtime settings (plugins, env vars)
-├── skills/                # Custom slash-command skills
-│   ├── creating-linear-tickets/
-│   ├── linear-todo-runner/
-│   ├── plan-review-ceo/
-│   ├── plan-review-eng/
-│   ├── starting-linear-ticket/
-│   └── verify-library-api/
-└── projects/              # Per-project memory (feedback, workflow learnings)
-    └── -Users-.../memory/
+└── skills/                # Custom slash-command skills
+    ├── creating-linear-tickets/
+    ├── linear-todo-runner/
+    ├── plan-review-ceo/
+    ├── plan-review-eng/
+    ├── starting-linear-ticket/
+    └── verify-library-api/
 ```
 
 ## Overall Workflow
@@ -101,16 +99,11 @@ Complete ticket workflow: fetch from Linear → mark in progress → create work
 
 Batch ticket processor. Fetches all Todo issues, maps dependencies, then runs a rolling queue of up to 4 parallel agents — each working through the full ticket workflow independently. Agents propose acceptance criteria and wait for approval before implementing.
 
-## Memory System
+## Memory & Per-Project Learnings
 
-Claude Code's auto-memory stores learnings from past conversations. Organized by type:
+Claude Code has an auto-memory system that stores learnings from past conversations at `~/.claude/projects/<encoded-path>/memory/`. That directory is gitignored here — **project memories belong in each project's own `.claude/CLAUDE.md`**, not in this public repo.
 
-- **Feedback** — corrections and confirmed approaches (e.g., "background subagents need `mode: acceptEdits`")
-- **User** — role, preferences, expertise level
-- **Project** — ongoing initiatives, deadlines, decisions
-- **Reference** — pointers to external resources (Linear projects, Notion docs, dashboards)
-
-Memory lives in `projects/<encoded-path>/memory/`. Each project gets its own memory directory. Project-specific references (API keys, deployment IDs, infrastructure details) belong in each project's own `.claude/CLAUDE.md`, not here.
+When Claude Code saves a memory (feedback, corrections, workflow learnings), periodically consolidate the useful ones into the relevant project's `.claude/CLAUDE.md` under a "Workflow Learnings" section, then clean up the auto-memory files. This keeps learnings version-controlled with the project and visible to anyone working in that repo.
 
 ## Settings
 
