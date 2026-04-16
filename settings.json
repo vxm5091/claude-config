@@ -5,5 +5,8 @@
   "enabledPlugins": {
     "superpowers@superpowers-marketplace": true
   },
-  "effortLevel": "high"
+  "effortLevel": "high",
+  "permissions": {
+    "defaultMode": "auto"
+  }
 }
