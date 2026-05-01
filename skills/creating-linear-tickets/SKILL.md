@@ -124,10 +124,43 @@ Auto-detect whether this is a single ticket or project with multiple tickets:
 - Full scope (what's included, what's not)
 - Acceptance criteria (specific, testable)
 - Dependencies on other tickets
-- Testing requirements
+- **Verification** — observable signals, test scenarios, post-merge commands (see template below)
+- **Implementation Snapshot** — produced by scout subagent in 5a
+- **Sharp Edges** — pulled from memory in 5b
 - Architecture notes from Eng review
 
 Present each ticket to the user for validation before creating in Linear.
+
+#### Step 5a: Scout subagent — produce Implementation Snapshot
+
+For each ticket, spawn a scout subagent (Agent tool, `subagent_type: "general-purpose"`) using the brief in `scout-prompt.md`. The scout returns a markdown block containing:
+- Files to modify / create
+- Patterns to follow (with `<symbol>` in `<path>` references)
+- Schema or types touched
+- Current commit SHA at scout time
+
+Paste this verbatim into the ticket's Implementation Snapshot section. The scout writes no code and proposes no changes — it only anchors the ticket in the current codebase.
+
+This step is what makes a freshly created ticket immediately runnable: the implementing agent picks up real file paths and conventions, not generic guidance.
+
+#### Step 5b: Sharp Edges — pull from memory
+
+Grep memory feedback for entries whose subject intersects this ticket's scope. From `~/.claude/projects/-Users-kayleigh-dev-nextbest/memory/`:
+
+```bash
+grep -l -E '<keywords from ticket>' ~/.claude/projects/-Users-kayleigh-dev-nextbest/memory/feedback_*.md
+```
+
+Common keyword → memory mappings:
+- Supabase migration / DDL → `feedback_postgrest_schema_cache`, `feedback_batch_db_calls`
+- Bulk DB operations → `feedback_batch_db_calls`, NEX-159/164 `.range()` pagination notes (see project CLAUDE.md)
+- UI copy / branding → `feedback_nextbest_lowercase`
+- UI layout / spacing change → `feedback_playwright_ui_testing`
+- Static asset swap → `feedback_static_asset_no_e2e`
+- Supabase write to `profiles.is_admin` → `feedback_is_admin_trigger`
+- Query optimization → `feedback_check_consumers_before_optimizing`
+
+Inline only the rules that are actually relevant. Do not dump everything — noise erodes signal.
 
 ### Step 6a: Create Single Ticket
 
@@ -174,8 +207,37 @@ mcp__linear-server__save_issue with:
 - [ ] <Each criterion maps to a verifiable outcome>
 - [ ] <Include both happy path and key edge cases>
 
-## Testing
-<Testing requirements — unit tests, integration tests, test runs>
+## Verification
+
+### Observable Signals
+Declarative "what's true after this ships":
+- <e.g., `GET /concern/<slug>` returns HTML containing `[data-testid="concern-summary"]` with text matching `tag_summaries.summary` for the matching tag UUID>
+- <e.g., `tag_summaries` row exists for every tag in `tags` after backfill>
+- <e.g., Sentry shows zero new errors in `app/concern/[slug]/page.tsx` for 1 hour post-deploy>
+
+### Test Scenarios (TDD inputs)
+Explicit cases the implementer must write — each becomes a failing test first:
+- <e.g., looks up tag by slug, returns matching summary>
+- <e.g., missing slug returns 404>
+- <e.g., malformed slug normalized to lowercase>
+
+### Post-Merge Verification
+Runnable commands the agent executes during canary:
+- <e.g., `curl -s https://nextbest.one/concern/acne | grep -q 'data-testid="concern-summary"'`>
+- <e.g., Supabase MCP: `SELECT count(*) FROM tag_summaries` should equal `SELECT count(*) FROM tags`>
+
+## Implementation Snapshot
+*As of `<SHA>` on `<YYYY-MM-DD>`. Treat as hint — agent re-verifies on pickup.*
+- **Files to modify:** <paths>
+- **Files to create:** <paths>
+- **Patterns to follow:** see `<symbol>` in `<path>` for <what>
+- **Schema touched:** <tables / columns>
+
+## Sharp Edges (Durable)
+Project-specific traps relevant to this change:
+- <e.g., After any DDL on this table, run `NOTIFY pgrst, 'reload schema'` before Vercel redeploys>
+- <e.g., Supabase 1k-row cap — paginate any `.in()` query over `<table>`>
+- <e.g., "Nextbest" → "nextbest" (lowercase) in any user-facing copy>
 
 ## Dependencies
 <"Depends on: PROJ-XX" if applicable, or "None">
@@ -183,6 +245,15 @@ mcp__linear-server__save_issue with:
 ## Not In Scope
 <Items explicitly deferred or cut>
 ```
+
+**Why these sections matter for autonomous execution:**
+
+- **Acceptance Criteria** = the contract.
+- **Verification → Observable Signals** = the operational layer that makes the contract executable. Prevents "tests pass but behavior is wrong" bugs (slug-vs-UUID class).
+- **Verification → Test Scenarios** = TDD inputs the implementer literally writes as failing tests first.
+- **Verification → Post-Merge Verification** = canary commands the agent runs after deploy.
+- **Implementation Snapshot** = codebase anchors so the agent doesn't reinvent helpers or pick wrong file paths. Snapshot is a hint — agent re-verifies on pickup before trusting it.
+- **Sharp Edges** = curated subset of accumulated tribal knowledge, scoped to this change.
 
 **No separate design document.** Project-level context (architecture, data flow, scope decisions, failure modes, success criteria) lives in the project description. Each ticket is self-contained with its own requirements.
 

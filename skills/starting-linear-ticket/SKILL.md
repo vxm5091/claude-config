@@ -89,7 +89,10 @@ digraph workflow {
     fetch [label="1. Fetch ticket", shape=box];
     progress [label="2. Mark In Progress", shape=box];
     worktree [label="3. Create worktree", shape=box];
-    brainstorm [label="4. Brainstorm design\n+ Eng Review (execution)", shape=box];
+    rich [label="Ticket has Verification\n+ Snapshot sections?", shape=diamond];
+    brainstorm [label="4. Brainstorm design\n(legacy ticket)", shape=box];
+    eng [label="4. Eng Review (execution)\nrich ticket: skip brainstorm", shape=box];
+    fresh [label="4.5. Snapshot Freshness Check\n(rich ticket only)", shape=box];
     todos [label="5. Create task list", shape=box];
     tdd [label="6. Implement with TDD", shape=box];
     verify [label="7. Verify (tests + manual)", shape=box];
@@ -101,7 +104,12 @@ digraph workflow {
 
     merge [label="13. Merge & Cleanup\n(/merge)", shape=box, style=dashed];
 
-    fetch -> progress -> worktree -> brainstorm -> todos -> tdd -> verify -> pr -> codereview -> ci -> localtest -> review -> merge;
+    fetch -> progress -> worktree -> rich;
+    rich -> eng [label="yes"];
+    rich -> brainstorm [label="no"];
+    brainstorm -> eng;
+    eng -> fresh -> todos;
+    todos -> tdd -> verify -> pr -> codereview -> ci -> localtest -> review -> merge;
 }
 ```
 
@@ -143,32 +151,41 @@ Use branch name from Linear if available (`branchName` field), otherwise generat
 
 Where `<slug>` is kebab-case from ticket title.
 
-### Step 4: Brainstorm Design + Technical Review
+### Step 4: Design Pass (Conditional Brainstorm + Eng Review)
 
-**REQUIRED:** Invoke `superpowers:brainstorming` skill.
+**Inspect the ticket for new-template sections:**
 
-Provide context from the ticket:
-- Ticket requirements and acceptance criteria
-- Current codebase state (explore relevant files)
-- Any constraints from linked issues
+- `## Verification` (with Observable Signals + Test Scenarios + Post-Merge Verification)
+- `## Implementation Snapshot` (with `As of <SHA>` marker)
 
-Brainstorming will:
-- Ask clarifying questions one at a time
-- Propose 2-3 approaches with trade-offs
-- Present design incrementally for validation
-- Write design doc to `docs/plans/YYYY-MM-DD-<topic>-design.md`
+**Path A — Ticket has both sections (rich ticket from `creating-linear-tickets`):**
+- **Skip `superpowers:brainstorming`.** The ticket already encodes intent, observable signals, and codebase anchors. Asking clarifying questions defeats the autonomy goal.
+- Go directly to `plan-review-eng` in **execution mode** for a sanity pass on the snapshot-anchored approach. The reviewer reads the ticket's Snapshot + Verification, looks at the actual files, and surfaces edge cases / perf concerns / test gaps the ticket creator couldn't see.
+- If the eng review surfaces a real ambiguity (not just suggestions), STOP and escalate to the user. Otherwise proceed to Step 4.5.
 
-**After brainstorming completes:**
+**Path B — Ticket is missing Verification or Implementation Snapshot (legacy / hand-written):**
+- **REQUIRED:** Invoke `superpowers:brainstorming` skill (current behavior).
+  - Ask clarifying questions one at a time
+  - Propose 2-3 approaches with trade-offs
+  - Present design incrementally for validation
+  - Write design doc to `docs/plans/YYYY-MM-DD-<topic>-design.md`
+- Then invoke `plan-review-eng` in **execution mode**.
 
-**REQUIRED SUB-SKILL:** Invoke `plan-review-eng` in **execution mode**
+**Both paths produce:** edge cases to handle, codepath diagram with test coverage mapping, perf concerns, and an updated test plan matching the acceptance criteria. The test plan feeds Step 6 (TDD implementation).
 
-This reviews the design for code quality, test strategy, and performance — concerns that are best addressed when you're in the worktree looking at actual code. The review produces:
-- Edge cases to handle
-- Codepath diagram with test coverage mapping
-- Performance concerns
-- Updated test plan matching acceptance criteria
+### Step 4.5: Snapshot Freshness Check (Path A only)
 
-The test plan from this review feeds directly into Step 6 (TDD implementation).
+The Implementation Snapshot in the ticket was captured at ticket-creation time. Before trusting it, run the lightweight probes in `freshness-check.md`:
+
+- Each path under "Files to modify" / "Files to create" exists (or is correctly marked as new).
+- Each "see `<symbol>` in `<path>`" reference still resolves (grep for the symbol at that path).
+- Each "Schema touched" column still exists (one Supabase MCP query against `information_schema.columns`).
+
+**If all probes pass:** trust the snapshot. Proceed.
+
+**If any probe fails:** spawn a Rescue Scout subagent (Agent tool, `subagent_type: "general-purpose"`, brief from `~/.claude/skills/creating-linear-tickets/scout-prompt.md` "Rescue Scout" mode). It refreshes only the broken anchors and writes the refreshed snapshot to `<worktree>/SNAPSHOT.md`. The Linear ticket is NOT updated — the durable spec hasn't changed.
+
+After rescue, the implementing agent uses the refreshed snapshot for the rest of the workflow.
 
 ### Step 5: Create Task List
 
@@ -383,7 +400,8 @@ Report completion with PR URL.
 | 1 | Fetch ticket | `mcp__linear-server__get_issue` |
 | 2 | Mark in progress | `mcp__linear-server__update_issue` |
 | 3 | Create worktree | `superpowers:using-git-worktrees` |
-| 4 | Design + Technical Review | `superpowers:brainstorming` then `plan-review-eng` (execution mode) |
+| 4 | Design Pass (conditional) | If ticket has Verification + Snapshot → `plan-review-eng` only. Else `superpowers:brainstorming` then `plan-review-eng`. |
+| 4.5 | Snapshot Freshness Check (Path A) | Probes from `freshness-check.md`. On failure: Rescue Scout writes `<worktree>/SNAPSHOT.md`. |
 | 5 | Create task list | `TaskCreate` + `TaskUpdate` for dependencies |
 | 6 | Implement | Subagents (`Task` tool, `general-purpose`) with TDD |
 | 7 | Verify (unit + E2E + manual) | Subagent (`Bash`) or `superpowers:verification-before-completion` |
@@ -396,9 +414,13 @@ Report completion with PR URL.
 
 ## Common Mistakes
 
-### Skipping brainstorming for "simple" tickets
-- **Problem:** Jumps into implementation without understanding requirements
-- **Fix:** Always brainstorm. Even simple tickets benefit from clarifying questions.
+### Skipping brainstorming when the ticket is missing Verification or Implementation Snapshot
+- **Problem:** Jumps into implementation without understanding requirements; the ticket alone doesn't carry enough context
+- **Fix:** Brainstorm whenever the ticket is missing the new sections (Path B). Only skip brainstorming when the ticket has both Verification AND Implementation Snapshot — those sections are what justify the skip.
+
+### Trusting a stale Implementation Snapshot
+- **Problem:** Snapshot listed file paths or symbols that have since moved or been renamed; agent edits the wrong file or reinvents a helper that's been refactored
+- **Fix:** Always run the Step 4.5 freshness check on rich tickets. If any probe fails, spawn the Rescue Scout — don't paper over a broken anchor.
 
 ### Forgetting to mark ticket In Progress
 - **Problem:** Team doesn't know work has started
