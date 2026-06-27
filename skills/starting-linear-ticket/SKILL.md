@@ -98,6 +98,7 @@ digraph workflow {
     tdd [label="6. Implement with TDD", shape=box];
     verify [label="7. Verify (tests + manual)", shape=box];
     pr [label="8. Create PR", shape=box];
+    codex [label="8.5. Codex auto-review\n(respond when it replies)", shape=box, style=dashed];
     codereview [label="9. Code review", shape=box];
     ci [label="10. Check CI", shape=box];
     localtest [label="11. Local deploy\n(if UI feature)", shape=box, style=dashed];
@@ -110,7 +111,7 @@ digraph workflow {
     rich -> brainstorm [label="no"];
     brainstorm -> eng;
     eng -> fresh -> proto -> todos;
-    todos -> tdd -> verify -> pr -> codereview -> ci -> localtest -> review -> merge;
+    todos -> tdd -> verify -> pr -> codex -> codereview -> ci -> localtest -> review -> merge;
 }
 ```
 
@@ -349,6 +350,8 @@ EOF
 
 Capture the PR URL from output.
 
+> **Next step — Codex auto-reviews.** Opening the PR (and every later push to it) auto-triggers **Codex** as a code reviewer; it posts inline comments on the PR. You don't wait on it here. When the user says Codex has replied, invoke the **`responding-to-codex-review`** skill — it reacts 👍/👎 to each comment, auto-implements the agreed ones, resolves them on GitHub, and summarizes on the Linear ticket. (This is separate from your own pre-emptive review in Step 9.)
+
 ### Step 9: Code Review
 
 **REQUIRED:** Invoke `superpowers:requesting-code-review` skill OR use the `superpowers:code-reviewer` agent.
@@ -422,6 +425,7 @@ Report completion with PR URL.
 | 6 | Implement | Subagents (`Task` tool, `general-purpose`) with TDD |
 | 7 | Verify (unit + E2E + manual) | Subagent (`Bash`) or `superpowers:verification-before-completion` |
 | 8 | Create PR | `gh pr create` |
+| 8.5 | Codex auto-review | Codex auto-reviews the PR. When it replies → `responding-to-codex-review` skill (👍/👎 each comment, auto-implement agreed, resolve on GitHub + Linear) |
 | 9 | Code review | Project `scaled-code-review` skill (if exists) OR `superpowers:code-reviewer` agent |
 | 10 | Check CI | `gh pr checks --watch` → fix failures if any |
 | 11 | Local deploy (if UI) | `npm run dev` in worktree → user manual tests → wait for feedback |

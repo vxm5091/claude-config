@@ -13,9 +13,13 @@ My global [Claude Code](https://docs.anthropic.com/en/docs/claude-code) configur
     ├── linear-todo-runner/
     ├── plan-review-ceo/
     ├── plan-review-eng/
+    ├── rapid-prototype/
+    ├── responding-to-codex-review/
     ├── starting-linear-ticket/
     └── verify-library-api/
 ```
+
+> Skills live in this repo (`/Users/vlad/claude-config/skills/`) and are symlinked into `~/.claude/skills/`, so edits here take effect globally with no re-sync.
 
 ## Overall Workflow
 
@@ -38,6 +42,9 @@ Ticket ready to build
      → Each subagent: TDD (write test → implement → refactor)
      → Verify (superpowers:verification-before-completion)
      → Create PR, run code review (superpowers:code-reviewer)
+     → Codex auto-reviews the PR
+         → responding-to-codex-review: 👍/👎 each comment,
+           auto-implement agreed items, resolve on GitHub + Linear
      → Check CI, update Linear to In Review
 
 Multiple tickets ready
@@ -98,6 +105,14 @@ Complete ticket workflow: fetch from Linear → mark in progress → create work
 ### `linear-todo-runner`
 
 Batch ticket processor. Fetches all Todo issues, maps dependencies, then runs a rolling queue of up to 4 parallel agents — each working through the full ticket workflow independently. Agents propose acceptance criteria and wait for approval before implementing.
+
+### `responding-to-codex-review`
+
+Handles the auto-triggered Codex reviewer on a PR. For each Codex comment, reacts 👍 (agree) or 👎 (disagree); **auto-implements every agreed-with item without needing buy-in**, pushes to the PR branch, and marks the comment resolved on GitHub plus a summary comment on the linked Linear ticket. Disagreements get a 👎 + a reply explaining why, stay open, and are surfaced to the user. Triggered when Codex replies; the PR step of `starting-linear-ticket` and `linear-todo-runner` point here.
+
+### `rapid-prototype`
+
+Lightweight throwaway / time-boxed prototype workflow for spikes, demos, hackathons, and take-homes — when the full `starting-linear-ticket` ceremony (Linear, worktrees, TDD, PR) is too heavy and a coherent result matters more than finishing.
 
 ## Memory & Per-Project Learnings
 
