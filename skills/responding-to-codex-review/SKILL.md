@@ -70,7 +70,7 @@ query($owner:String!,$name:String!,$pr:Int!){
         nodes{
           id isResolved isOutdated
           comments(first:30){
-            nodes{ databaseId body path line url author{ login } }
+            nodes{ databaseId body path line url author{ login } reactions(first:20){ nodes{ content user{ login } } } }
           }
         }
       }
@@ -81,7 +81,13 @@ query($owner:String!,$name:String!,$pr:Int!){
 
 - `id` = thread node id → used to **resolve** the thread.
 - `comments[].databaseId` = REST comment id → used to **react** and **reply**.
-- **Detect the Codex author dynamically.** Find comment authors whose `login` matches Codex's bot (case-insensitive `codex` or `chatgpt`; commonly `chatgpt-codex-connector[bot]`). Do **not** hardcode the login — if it's ambiguous, ask the user which author is Codex once, then proceed. Only act on threads authored by Codex; skip human threads and already-`isResolved` threads.
+- **Detect the Codex author dynamically.** Find comment authors whose `login` matches Codex's bot (case-insensitive `codex` or `chatgpt`; commonly `chatgpt-codex-connector[bot]`). Do **not** hardcode the login — if it's ambiguous, ask the user which author is Codex once, then proceed.
+- **Know your own login** (you react/reply as the authenticated `gh` user): `ME=$(gh api user --jq .login)`.
+- **Build the actionable set** = Codex-authored threads that are **not yet handled**. Skip a thread when any of these is true:
+  - it's authored by a human (not Codex), or
+  - it's already `isResolved`, or
+  - **you've already handled it** — the Codex comment already carries a reaction from `$ME`, **or** the thread already contains a reply authored by `$ME`.
+- This last check is essential: disagreed threads are intentionally left **unresolved** (Step 5), so without skipping already-handled threads the re-review loop (Step 6) would re-fetch the same disagreement every pass and **never go clean**.
 
 ### Step 3 — Triage each Codex comment (agree vs disagree)
 
@@ -115,13 +121,18 @@ gh api --method POST "repos/$REPO/pulls/$PR/comments/<databaseId>/replies" \
 
 Do **not** resolve disagreed threads — leave them open so the user can override. Collect them for the final report.
 
-### Step 6 — Push the batched fixes
+### Step 6 — Commit and push the batched fixes
+
+**Commit first.** `git push` only sends *commits* — uncommitted edits stay local, so the PR branch wouldn't actually contain your fixes while Step 7 resolves the threads as "fixed". Always commit before pushing:
 
 ```bash
-git push    # on the PR branch / in the worktree — NEVER main
+git add -A
+git status                                   # confirm the intended fixes are staged
+git commit -m "Address Codex review: <short summary of the fixes>"
+git push                                     # on the PR branch / in the worktree — NEVER main
 ```
 
-Pushing new commits **may re-trigger Codex**. That's expected: after it re-reviews, run this skill again on any new actionable comments. Continue the loop until Codex has no remaining un-addressed comments.
+Pushing new commits **may re-trigger Codex**. That's expected: after it re-reviews, run this skill again on the actionable set (Step 2 — which excludes threads you've already handled, so standing disagreements don't keep the loop alive). Continue until Codex has no remaining un-addressed comments.
 
 ### Step 7 — Resolve the agreed threads on GitHub
 
@@ -164,6 +175,8 @@ Never merge the PR as part of this skill — merging always waits for explicit u
 | Fetch threads + IDs | `gh api graphql` query in Step 2 |
 | 👍 / 👎 a comment | `gh api --method POST repos/$REPO/pulls/comments/<databaseId>/reactions -f content='+1'` (or `'-1'`) |
 | Reply in a thread | `gh api --method POST repos/$REPO/pulls/$PR/comments/<databaseId>/replies -f body='...'` |
+| Your own login | `gh api user --jq .login` |
+| Commit + push fixes | `git add -A && git commit -m '...' && git push` (commit before push) |
 | Resolve a thread | `gh api graphql` `resolveReviewThread` mutation in Step 7 |
 | Linear summary | configured Linear MCP create-comment tool |
 
@@ -186,7 +199,15 @@ Reaction `content` values are GitHub's enum: `+1` = 👍, `-1` = 👎.
 
 ### Resolving threads before the fix is pushed
 - **Problem:** Thread shows resolved but the fix isn't on the branch yet.
-- **Fix:** Implement → push (Step 6) → only then resolve (Step 7).
+- **Fix:** Implement → commit → push (Step 6) → only then resolve (Step 7).
+
+### Pushing without committing
+- **Problem:** `git push` sends only commits, so uncommitted fixes never reach the PR branch — yet the threads get resolved as "fixed".
+- **Fix:** Always `git add` + `git commit` (with a `git status` check) before `git push` (Step 6).
+
+### Re-handling threads you already addressed
+- **Problem:** Disagreed threads stay unresolved by design, so a naive "loop until no open threads" re-fetches them every re-review and never terminates.
+- **Fix:** Skip threads that already carry your reaction or reply when building the actionable set (Step 2).
 
 ### Stopping to ask permission for agreed fixes
 - **Problem:** Defeats the authorized-autonomy design; wastes the user's time.
