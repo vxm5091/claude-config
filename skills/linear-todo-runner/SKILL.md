@@ -143,6 +143,11 @@ skill workflow with these modifications:
 
 After Step 11 (Linear updated to In Review), also:
 - Send PR URL, code review summary, and implementation summary to team lead via SendMessage.
+- **Codex auto-reviews your PR.** Opening the PR (and each push) auto-triggers
+  Codex, which posts inline comments. When Codex replies, run the
+  `responding-to-codex-review` skill on YOUR PR: 👍/👎 each comment,
+  auto-implement the agreed ones on YOUR branch (no buy-in needed), resolve them
+  on GitHub, summarize on Linear, and report disagreements to the team lead.
 - **Stay alive after submitting PR** — do NOT exit. Wait for feedback from the
   team lead. If they request changes, push fixes to YOUR branch and report back.
   Only shut down when the team lead sends a shutdown request (meaning the PR was
@@ -178,6 +183,8 @@ Each agent sends proposed acceptance criteria via SendMessage. The lead:
 After approval, agents proceed autonomously through implementation → test → PR → code review.
 
 Agents should run the `superpowers:code-reviewer` on their own PR and fix Critical/Important issues before reporting back.
+
+Each agent's PR is also auto-reviewed by **Codex**. Agents respond to Codex via the `responding-to-codex-review` skill on their own branch (auto-implementing agreed comments without buy-in) before reporting the PR as ready.
 
 Monitor via TaskList. If an agent reports a blocker, help resolve it.
 

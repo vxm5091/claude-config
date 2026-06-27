@@ -76,7 +76,9 @@ This applies even when the path seems obvious. Do NOT skip this for "simple" tas
 
 ## Task Tracking with Linear
 
-The Linear team name is configured per-project in the project's `.claude/CLAUDE.md`.
+**🚨 Every PR maps to a Linear ticket, and every ticket belongs to a Linear project. No PR without a ticket; no ticket without a project. 🚨**
+
+The Linear team name **and project** are configured per-project in the project's `.claude/CLAUDE.md`. Before opening a PR, confirm the ticket exists and is filed under the right project — if no suitable project exists yet, create it (or ask which to use) rather than filing a loose, project-less ticket.
 
 ### When to Create Tasks
 
@@ -146,12 +148,13 @@ If Linear MCP times out, ask user to run `/mcp` to re-authenticate.
 **🚨 CRITICAL: NEVER commit directly to `main`. ALWAYS use a worktree and create a PR. 🚨**
 
 Even for "quick fixes" or single-file changes - ALWAYS:
-1. Use `using-git-worktrees` skill to create isolated worktree
-2. Do ALL work in the worktree (not the main directory)
-3. Make commits on the branch
-4. Push the branch
-5. Create a PR with `gh pr create`
-6. Wait for user approval before merging
+1. Create or find a Linear ticket **in the correct project** and mark it "In Progress" (there is no PR without a project-linked ticket)
+2. Use `using-git-worktrees` skill to create isolated worktree
+3. Do ALL work in the worktree (not the main directory)
+4. Make commits on the branch
+5. Push the branch
+6. Create a PR with `gh pr create` — reference the ticket ID in the PR body
+7. Wait for user approval before merging
 
 **NO EXCEPTIONS.** Do not commit to main, even if the user says "commit" or "push". Create a worktree and PR instead.
 
@@ -209,7 +212,7 @@ Use `TeamCreate` to spawn parallel agents when:
 The `starting-linear-ticket` skill has full team setup details.
 
 ### PR Requirements
-- Link to Linear task
+- Link to a Linear ticket that belongs to a project — put the ticket ID in the PR body (a `## Linear` section with `<TEAM>-<number>`)
 - Test plan
 - Run tests locally before pushing
 - Verify CI passes
